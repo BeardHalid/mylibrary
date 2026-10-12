@@ -58,7 +58,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                         });
                         _translatedSummary =
                             await AIActions(
-                                  FirebaseAI.googleAI().generativeModel(model: 'gemini-3.8-flash'),
+                                  FirebaseAI.googleAI().generativeModel(model: 'gemini-3.6-flash'),
                                 )
                                 .translateSummary(_summary)
                                 .whenComplete(() {
