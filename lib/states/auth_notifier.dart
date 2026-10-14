@@ -96,8 +96,31 @@ class AuthNotifier extends StreamNotifier<User?> {
     final authRepository = ref.read(authRepositoryProvider);
     try {
       await authRepository.defaultAuthRepository().updateDisplayName(displayName);
-    } catch (e, st) {
-      Error.throwWithStackTrace(e, st);
+      ref.read(errorCatchProvider.notifier).state = BaseException(
+        result: 'Kullanıcı adı güncelleme işlemi başarılı',
+        color: Colors.green,
+      );
+    } catch (e) {
+      ref.read(errorCatchProvider.notifier).state = BaseException(
+        result: e.toString(),
+        color: Colors.red,
+      );
+    }
+  }
+
+  Future<void> updatePhoneNumber(String phoneNumber) async {
+    final authRepository = ref.read(authRepositoryProvider);
+    try {
+      await authRepository.defaultAuthRepository().updatePhoneNumber(phoneNumber);
+      ref.read(errorCatchProvider.notifier).state = BaseException(
+        result: 'Kullanıcı adı güncelleme işlemi başarılı',
+        color: Colors.green,
+      );
+    } catch (e) {
+      ref.read(errorCatchProvider.notifier).state = BaseException(
+        result: e.toString(),
+        color: Colors.red,
+      );
     }
   }
 }
