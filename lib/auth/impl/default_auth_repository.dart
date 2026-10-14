@@ -6,7 +6,7 @@ import 'package:mylibrary/auth/core/idefault_auth_repository.dart';
 class DefaultAuthRepository implements IDefaultAuthRepository {
   final FirebaseAuth _auth;
 
-  new({required this._auth});
+  DefaultAuthRepository({required this._auth});
 
   @override
   Future<void> resetPassword(String email) async {
@@ -108,30 +108,56 @@ class DefaultAuthRepository implements IDefaultAuthRepository {
   }
 
   @override
-  Future<void> updatePhoneNumber(String phoneNumber) async {
+  Future<void> updatePhoneNumber(String verificationId, String smsCode) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        await _auth.verifyPhoneNumber(
-          phoneNumber: phoneNumber,
-
-          verificationCompleted: (PhoneAuthCredential credential) async {
-            await user.updatePhoneNumber(credential);
-            log('Telefon numarası başarıyla güncellendi');
-          },
-          verificationFailed: (FirebaseAuthException e) {
-            log('Telefon numarası doğrulanamadı: $e');
-          },
-          codeSent: (String verificationId, int? resendToken) {
-            log('Telefon numarasına doğrulama kodu gönderildi');
-          },
-          codeAutoRetrievalTimeout: (String verificationId) {},
+        final credential = PhoneAuthProvider.credential(
+          verificationId: verificationId,
+          smsCode: smsCode,
         );
+        await user.updatePhoneNumber(credential);
       } else {
         log('Kullanıcı bulunamadı');
       }
     } catch (e) {
       log('Telefon numarası güncellenemedi: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> verifyPhoneNumber(
+    String phoneNumber, {
+    required void Function(String verificationId) onCodeSent,
+    required void Function(Object error) onVerificationFailed,
+    required void Function() onVerificationCompleted,
+  }) async {
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            final user = _auth.currentUser;
+            if (user == null) {
+              throw StateError('Telefon numarası güncellenecek kullanıcı bulunamadı.');
+            }
+            await user.updatePhoneNumber(credential);
+            onVerificationCompleted();
+          } catch (e) {
+            onVerificationFailed(e);
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          onVerificationFailed(e);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          onCodeSent(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    } catch (e) {
+      log('Telefon numarası doğrulama isteği başlatılamadı: $e');
       rethrow;
     }
   }
