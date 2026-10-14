@@ -108,10 +108,10 @@ class AuthNotifier extends StreamNotifier<User?> {
     }
   }
 
-  Future<void> updatePhoneNumber(String phoneNumber) async {
+  Future<void> updatePhoneNumber(String verificationId, String smsCode) async {
     final authRepository = ref.read(authRepositoryProvider);
     try {
-      await authRepository.defaultAuthRepository().updatePhoneNumber(phoneNumber);
+      await authRepository.defaultAuthRepository().updatePhoneNumber(verificationId, smsCode);
       ref.read(errorCatchProvider.notifier).state = BaseException(
         result: 'Telefon numarası güncelleme işlemi başarılı',
         color: Colors.green,
@@ -121,6 +121,22 @@ class AuthNotifier extends StreamNotifier<User?> {
         result: e.toString(),
         color: Colors.red,
       );
+      rethrow;
     }
+  }
+
+  Future<void> verifyPhoneNumber(
+    String phoneNumber, {
+    required void Function(String verificationId) onCodeSent,
+    required void Function(Object error) onVerificationFailed,
+    required void Function() onVerificationCompleted,
+  }) async {
+    final authRepository = ref.read(authRepositoryProvider);
+    await authRepository.defaultAuthRepository().verifyPhoneNumber(
+      phoneNumber,
+      onCodeSent: onCodeSent,
+      onVerificationFailed: onVerificationFailed,
+      onVerificationCompleted: onVerificationCompleted,
+    );
   }
 }
