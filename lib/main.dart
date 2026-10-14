@@ -16,7 +16,7 @@ Future<void> main() async {
     publishableKey: dotenv.get('SUPABASE_PUBLISHABLE_KEY'),
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAppCheck.instance.activate(androidProvider: AndroidProvider.debug);
+  await FirebaseAppCheck.instance.activate(providerAndroid: AndroidPlayIntegrityProvider());
   setup(); // <--used before implementation of riverpod so no need to utilize anymore
   runApp(ProviderScope(child: const MyApp()));
 }

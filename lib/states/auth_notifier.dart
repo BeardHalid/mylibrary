@@ -113,7 +113,7 @@ class AuthNotifier extends StreamNotifier<User?> {
     try {
       await authRepository.defaultAuthRepository().updatePhoneNumber(phoneNumber);
       ref.read(errorCatchProvider.notifier).state = BaseException(
-        result: 'Kullanıcı adı güncelleme işlemi başarılı',
+        result: 'Telefon numarası güncelleme işlemi başarılı',
         color: Colors.green,
       );
     } catch (e) {

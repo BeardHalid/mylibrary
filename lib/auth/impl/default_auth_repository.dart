@@ -114,6 +114,7 @@ class DefaultAuthRepository implements IDefaultAuthRepository {
       if (user != null) {
         await _auth.verifyPhoneNumber(
           phoneNumber: phoneNumber,
+
           verificationCompleted: (PhoneAuthCredential credential) async {
             await user.updatePhoneNumber(credential);
             log('Telefon numarası başarıyla güncellendi');

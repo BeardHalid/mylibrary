@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mylibrary/constants.dart';
+import 'package:mylibrary/router.dart';
 import 'package:mylibrary/states/genres_detail_riverpod.dart';
 
 class GenresDetailScreen extends ConsumerWidget {
@@ -19,39 +21,44 @@ class GenresDetailScreen extends ConsumerWidget {
               itemCount: data.length,
               itemBuilder: (context, index) {
                 final book = data[index];
-                return Card(
-                  elevation: 5.0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(10.0)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        book.coverImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadiusGeometry.circular(10.0),
-                                child: Image.network(
-                                  book.coverImage!,
-                                  fit: BoxFit.fill,
-                                  width: 100,
+                return InkWell(
+                  onTap: () => context.push(AppRoutes.bookDetailScreen, extra: book),
+                  child: Card(
+                    elevation: 5.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(10.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          book.coverImage != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadiusGeometry.circular(10.0),
+                                  child: Image.network(
+                                    book.coverImage!,
+                                    fit: BoxFit.fill,
+                                    width: 100,
+                                  ),
+                                )
+                              : const Placeholder(),
+                          Constants.horizontalGap(10),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(book.title ?? 'Başlık Yok', style: TextStyle(fontSize: 14.0)),
+                                Constants.verticalGap(10),
+                                Text(
+                                  book.authors != null ? book.authors!.first.name! : 'Yazar Yok',
+                                  style: TextStyle(fontSize: 12.0),
                                 ),
-                              )
-                            : const Placeholder(),
-                        Constants.horizontalGap(10),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(book.title ?? 'Başlık Yok', style: TextStyle(fontSize: 14.0)),
-                              Constants.verticalGap(10),
-                              Text(
-                                book.authors != null ? book.authors!.first.name! : 'Yazar Yok',
-                                style: TextStyle(fontSize: 12.0),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
