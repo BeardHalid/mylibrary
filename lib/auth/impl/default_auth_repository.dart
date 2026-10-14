@@ -109,14 +109,29 @@ class DefaultAuthRepository implements IDefaultAuthRepository {
 
   @override
   Future<void> updatePhoneNumber(String phoneNumber) async {
-    // try {
-    //   final user = _auth.currentUser;
-    //   if (user != null) {
-    //     final phoneLink = await user.linkWithPhoneNumber(phoneNumber);
-    //     await user.updatePhoneNumber();
-    //   } else {
-    //     log('Kullanıcı bulunamadı');
-    //   }
-    // } catch (e) {}
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _auth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            await user.updatePhoneNumber(credential);
+            log('Telefon numarası başarıyla güncellendi');
+          },
+          verificationFailed: (FirebaseAuthException e) {
+            log('Telefon numarası doğrulanamadı: $e');
+          },
+          codeSent: (String verificationId, int? resendToken) {
+            log('Telefon numarasına doğrulama kodu gönderildi');
+          },
+          codeAutoRetrievalTimeout: (String verificationId) {},
+        );
+      } else {
+        log('Kullanıcı bulunamadı');
+      }
+    } catch (e) {
+      log('Telefon numarası güncellenemedi: $e');
+      rethrow;
+    }
   }
 }
