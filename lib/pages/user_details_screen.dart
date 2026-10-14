@@ -303,6 +303,72 @@ class _UserDetailsScreenState extends ConsumerState<UserDetailsScreen> {
                 ),
                 CustomButton(
                   width: Constants.screenWidth(context) * 0.9,
+                  text: 'Telefon Numarası Güncelle',
+                  onPressed: () async {
+                    String? newPhoneNumber;
+                    showDialog(
+                      barrierDismissible: false,
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const CustomText(
+                            text: '...Yeni İsim...',
+                            textAlign: TextAlign.center,
+                          ),
+                          alignment: Alignment.center,
+                          content: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: TextField(
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                hintText: 'Yeni telefon numarası...',
+                                hintStyle: TextStyle(fontStyle: FontStyle.italic, fontSize: 13.0),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                if (value.isNotEmpty) {
+                                  newPhoneNumber = value;
+                                } else {
+                                  newPhoneNumber = null;
+                                }
+                              },
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const CustomText(text: 'İptal'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                if (newPhoneNumber != null) {
+                                  Navigator.of(context).pop();
+                                  await ref
+                                      .read(authNotifierProvider.notifier)
+                                      .updatePhoneNumber(newPhoneNumber!);
+                                } else {
+                                  Navigator.of(context).pop();
+                                  CustomSnackbar.showSnackBar(
+                                    context,
+                                    const CustomText(
+                                      text: 'Telefon numarası güncelleme alanı boş bırakılamaz!',
+                                    ),
+                                    Colors.red,
+                                  );
+                                }
+                              },
+                              child: const CustomText(text: 'Telefon Numarası Güncelle'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                CustomButton(
+                  width: Constants.screenWidth(context) * 0.9,
                   text: 'Çıkış Yap',
                   onPressed: () async {
                     try {
