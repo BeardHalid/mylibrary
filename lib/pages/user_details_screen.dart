@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -344,18 +345,152 @@ class _UserDetailsScreenState extends ConsumerState<UserDetailsScreen> {
                               ),
                               TextButton(
                                 onPressed: () async {
-                                  if (newPhoneNumber != null) {
-                                    Navigator.of(context).pop();
-                                    await ref
-                                        .read(authNotifierProvider.notifier)
-                                        .updatePhoneNumber(newPhoneNumber!);
-                                  } else {
+                                  final pageContext = this.context;
+                                  final phoneNumber = newPhoneNumber?.trim();
+                                  if (phoneNumber == null || phoneNumber.isEmpty) {
                                     Navigator.of(context).pop();
                                     CustomSnackbar.showSnackBar(
-                                      context,
+                                      pageContext,
                                       const CustomText(
                                         text: 'Telefon numarası güncelleme alanı boş bırakılamaz!',
                                       ),
+                                      Colors.red,
+                                    );
+                                    return;
+                                  }
+
+                                  Navigator.of(context).pop();
+                                  var progressDialogOpen = true;
+                                  var automaticallyVerified = false;
+                                  BuildContext? codeSheetContext;
+
+                                  void closeProgressDialog() {
+                                    if (progressDialogOpen && mounted) {
+                                      progressDialogOpen = false;
+                                      Navigator.of(pageContext, rootNavigator: true).pop();
+                                    }
+                                  }
+
+                                  showDialog<void>(
+                                    context: pageContext,
+                                    barrierDismissible: false,
+                                    builder: (_) =>
+                                        const Center(child: CircularProgressIndicator()),
+                                  );
+
+                                  try {
+                                    await ref
+                                        .read(authNotifierProvider.notifier)
+                                        .verifyPhoneNumber(
+                                          phoneNumber,
+                                          onCodeSent: (verificationId) {
+                                            if (!mounted || automaticallyVerified) return;
+                                            closeProgressDialog();
+                                            unawaited(
+                                              showModalBottomSheet<void>(
+                                                context: pageContext,
+                                                builder: (sheetContext) {
+                                                  codeSheetContext = sheetContext;
+                                                  var smsCode = '';
+                                                  return Padding(
+                                                    padding: const EdgeInsets.all(20.0),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      spacing: 10.0,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        const CustomText(text: 'Onay Kodu'),
+                                                        TextField(
+                                                          keyboardType: TextInputType.number,
+                                                          onChanged: (value) =>
+                                                              smsCode = value.trim(),
+                                                          decoration: const InputDecoration(
+                                                            hintText: 'Onay Kodu...',
+                                                            border: OutlineInputBorder(),
+                                                          ),
+                                                        ),
+                                                        CustomButton(
+                                                          text: 'Onayla',
+                                                          onPressed: () async {
+                                                            if (smsCode.isEmpty) {
+                                                              CustomSnackbar.showSnackBar(
+                                                                pageContext,
+                                                                const CustomText(
+                                                                  text:
+                                                                      'Onay kodu boş bırakılamaz.',
+                                                                ),
+                                                                Colors.red,
+                                                              );
+                                                              return;
+                                                            }
+                                                            try {
+                                                              await ref
+                                                                  .read(
+                                                                    authNotifierProvider.notifier,
+                                                                  )
+                                                                  .updatePhoneNumber(
+                                                                    verificationId,
+                                                                    smsCode,
+                                                                  );
+                                                              if (mounted && sheetContext.mounted) {
+                                                                Navigator.of(sheetContext).pop();
+                                                                CustomSnackbar.showSnackBar(
+                                                                  this.context,
+                                                                  const CustomText(
+                                                                    text: 'Telefon numarası başarıyla güncellendi.',
+                                                                  ),
+                                                                  Colors.green,
+                                                                );
+                                                              }
+                                                            } catch (e) {
+                                                              if (!mounted) return;
+                                                              CustomSnackbar.showSnackBar(
+                                                                this.context,
+                                                                CustomText(text: e.toString()),
+                                                                Colors.red,
+                                                              );
+                                                            }
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          },
+                                          onVerificationFailed: (error) {
+                                            if (!mounted) return;
+                                            closeProgressDialog();
+                                            CustomSnackbar.showSnackBar(
+                                              pageContext,
+                                              CustomText(text: error.toString()),
+                                              Colors.red,
+                                            );
+                                          },
+                                          onVerificationCompleted: () {
+                                            if (!mounted) return;
+                                            automaticallyVerified = true;
+                                            closeProgressDialog();
+                                            final sheetContext = codeSheetContext;
+                                            if (sheetContext != null && sheetContext.mounted) {
+                                              Navigator.of(sheetContext).pop();
+                                            }
+                                            CustomSnackbar.showSnackBar(
+                                              pageContext,
+                                              const CustomText(
+                                                text: 'Telefon numarası başarıyla güncellendi.',
+                                              ),
+                                              Colors.green,
+                                            );
+                                          },
+                                        );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    closeProgressDialog();
+                                    CustomSnackbar.showSnackBar(
+                                      this.context,
+                                      CustomText(text: e.toString()),
                                       Colors.red,
                                     );
                                   }
