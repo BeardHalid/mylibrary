@@ -27,6 +27,8 @@ migrate_working_dir/
 .env
 .env.*
 !.env.example
+google-services.json
+GoogleService-Info.plist
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
